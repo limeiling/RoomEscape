@@ -6,6 +6,8 @@ using System.IO;
 using System;
 using System.Linq;
 using System.Text;
+using System.Net;
+using System.Net.Sockets;
 
 namespace BTClient
 {
@@ -18,10 +20,101 @@ namespace BTClient
             while (true) { }
         }
     }
+
+    public class Server
+    {
+        Thread serverThread;
+        TcpListener server;
+        GloveDataPacket packet = null;
+        public Server() {
+            StartServer();
+        }
+
+        public void ServeGlovePacket(GloveDataPacket packet)
+        {
+            this.packet = packet;
+        }
+
+        public void StartServer()
+        {
+            serverThread = new Thread(RunServer);
+            serverThread.Start();
+        }
+        public void RunServer()
+        {
+            try
+            {
+                // Set the TcpListener on port 13000.
+                Int32 port = 13000;
+                IPAddress localAddr = IPAddress.Parse("127.0.0.1");
+
+                // TcpListener server = new TcpListener(port);
+                server = new TcpListener(localAddr, port);
+
+                // Start listening for client requests.
+                server.Start();
+
+                // Buffer for reading data
+                Byte[] bytes = new Byte[256];
+                String data = null;
+
+                // Enter the listening loop.
+                while (true)
+                {
+                    Console.Write("Waiting for a connection... ");
+
+                    // Perform a blocking call to accept requests.
+                    // You could also user server.AcceptSocket() here.
+                    TcpClient client = server.AcceptTcpClient();
+                    Console.WriteLine("Connected!");
+
+                    data = null;
+
+                    // Get a stream object for reading and writing
+                    NetworkStream stream = client.GetStream();
+
+
+                    // Loop to receive all the data sent by the client.
+                    while (true)
+                    {
+                        if(packet != null)
+                        {
+                            data = "{ 'finger0':" + packet.finger0 + ", 'finger1': " + packet.finger1 + ", 'finger2':" + packet.finger2 + ", 'heading':" + packet.heading + ", 'pitch':" + packet.pitch + ", 'roll':" + packet.roll + "}";
+
+                            byte[] msg = System.Text.Encoding.ASCII.GetBytes(data);
+
+                            // Send back a response.
+                            stream.Write(msg, 0, msg.Length);
+                            packet = null;
+                        }
+                    }
+
+                    // Shutdown and end connection
+                    client.Close();
+                }
+            }
+            catch (SocketException e)
+            {
+                Console.WriteLine("SocketException: {0}", e);
+            }
+            finally
+            {
+                // Stop listening for new clients.
+                server.Stop();
+            }
+
+
+            Console.WriteLine("\nHit enter to continue...");
+            Console.Read();
+        }
+    }
+
     public class Connector {
         Thread btThread;
         bool CancellationPending = false;
+    Server server;
         public Connector() {
+            server = new Server();
             btThread = new Thread(Connect);
             btThread.Start();
         }
@@ -62,7 +155,7 @@ namespace BTClient
                     ConnectAttemptCount++;
                     Thread.Sleep(20);
                 }
-                Console.WriteLine("Connection estabilished");
+                Console.WriteLine("Connection established");
                 if (CancellationPending)
                 {
                     result = 2;
@@ -82,10 +175,10 @@ namespace BTClient
                     int BytesRead = 0;
                     while (cli.Connected)
                     {
-                        try
+                        /*try
                         {
-                            //byte[] TestByte = new byte[1] { 0x01 };
-                            //TransportStream.Write(TestByte, 0, 1);   // This is to test if the connection is intact
+                            byte[] TestByte = new byte[1] { 0x01 };
+                            TransportStream.Write(TestByte, 0, 1);   // This is to test if the connection is intact
                                                                      // Be aware that one byte is sent to the other client
                                                                      // the other client has to process (e.g. ignore) this byte
                         }
@@ -94,12 +187,15 @@ namespace BTClient
                             Console.WriteLine("Connection lost!");
                             Thread.Sleep(100);
 
-                        }
+                        }*/
                         if (cli.Connected)
                         {
-                            BytesRead = TransportStream.ReadByte();
-                            Console.WriteLine("Read bytes");
-                            Console.WriteLine(BytesRead);
+                            //BytesRead = TransportStream.ReadByte();
+                            MyBuffer = new byte[20];
+                            BytesRead = TransportStream.Read(MyBuffer, 0, 19);
+                            var packet = new GloveDataPacket(MyBuffer, BytesRead);
+                            server.ServeGlovePacket(packet);
+
                         }
                         else
                         {

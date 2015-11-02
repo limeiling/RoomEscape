@@ -33,17 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="InTheHand.Net.Bluetooth">
-      <HintPath>..\..\..\Assets\References\InTheHand.Net.Bluetooth.dll</HintPath>
-    </Reference>
-    <Reference Include="InTheHand.Net.Forms">
-      <HintPath>..\..\..\Assets\References\InTheHand.Net.Forms.dll</HintPath>
-    </Reference>
-    <Reference Include="InTheHand.Net.IrDA">
-      <HintPath>..\..\..\Assets\References\InTheHand.Net.IrDA.dll</HintPath>
-    </Reference>
-    <Reference Include="InTheHand.Net.ObjectExchange">
-      <HintPath>..\..\..\Assets\References\InTheHand.Net.ObjectExchange.dll</HintPath>
+    <Reference Include="InTheHand.Net.Personal, Version=3.5.605.0, Culture=neutral, PublicKeyToken=ea38caa273134499, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\InTheHand.Net.Personal.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -55,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GloveDataPacket.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
