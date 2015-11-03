@@ -410,7 +410,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: .100000001
-  r: 1.5
 --- !u!143 &585679414
 CharacterController:
   m_ObjectHideFlags: 0
